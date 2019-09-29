@@ -1,0 +1,105 @@
+,abstract
+0,"We propose a novel application of Formal Concept Analysis (FCA) to neural decoding: instead of just trying to figure out which stimulus was presented, we demonstrate how to explore the semantic relationships between the neural representation of large sets of stimuli. FCA provides a way of displaying and interpreting such relationships via concept lattices. We explore the effects of neural code sparsity on the lattice. We then analyze neurophysiological data from high-level visual cortical area STSa, using an exact Bayesian approach to construct the formal context needed by FCA. Prominent features of the resulting concept lattices are discussed, including indications for a product-of-experts code in real neurons."
+1,"Finding relevant publications is important for scientists who have to cope with exponentially increasing numbers of scholarly material. Algorithms can help with this task as they help for music, movie, and product recommendations. However, we know little about the performance of these algorithms with scholarly material. Here, we develop an algorithm, and an accompanying Python library, that implements a recommendation system based on the content of articles. Design principles are to adapt to new content, provide near-real time suggestions, and be open source. We tested the library on 15K posters from the Society of Neuroscience Conference 2015. Human curated topics are used to cross validate parameters in the algorithm and produce a similarity metric that maximally correlates with human judgments. We show that our algorithm significantly outperformed suggestions based on keywords. The work presented here promises to make the exploration of scholarly material faster and more accurate."
+2,"Dynamic programming is a powerful method for solving combinatorial optimization problems. However, it does not always work well, particularly for some NP-hard problems
+having extremely large state spaces. In this paper, we propose an approach to boost the
+capability of dynamic programming with neural networks. First, we replace the conventional tabular method with neural networks of polynomial sizes to approximately represent
+dynamic programming functions. And then we design an iterative algorithm to train the
+neural network with data generated from a solution reconstruction process. Our method
+combines the approximating ability and flexibility of neural networks and the advantage
+of dynamic programming in utilizing intrinsic properties of a problem. This approach can
+significantly reduce the space complexity and it is flexible in balancing space, running time,
+and accuracy. We apply the method to the Travelling Salesman Problem (TSP). The experimental results show that our approach can solve larger problems that are intractable for
+conventional dynamic programming and the performances are near optimal, outperforming
+the well-known approximation algorithms"
+3,"We explore a model-based approach to reinforcement learning where partially or totally unknown dynamics are learned and explicit planning is performed. We learn dynamics with neural networks, and plan behaviors with differential dynamic programming (DDP). In order to handle complicated dynamics, such as manipulating liquids (pouring), we consider temporally decomposed dynamics. We start from our recent work [1] where we used locally weighted regression (LWR) to model dynamics. The major contribution of this paper is making use of deep learning in the form of neural networks with stochastic DDP, and showing the advantages of neural networks over LWR. For this purpose, we extend neural networks for: (1) modeling prediction error and output noise, (2) computing an output probability distribution for a given input distribution, and (3) computing gradients of output expectation with respect to an input. Since neural networks have nonlinear activation functions, these extensions were not easy. We provide an analytic solution for these extensions using some simplifying assumptions. We verified this method in pouring simulation experiments. The learning performance with neural networks was better than that of LWR. The amount of spilled materials was reduced. We also present early results of robot experiments using a PR2. "
+4,"With the increasing number of scientic publications, research
+paper recommendation has become increasingly important for scientists. Most researchers rely on keyword-based search or following
+citations in other papers, in order to nd relevant research articles.
+And usually they spend a lot of time without getting satisfactory
+results. This study aims to propose a personalized research paper
+recommendation system, that facilitate this task by recommending
+papers based on users’ explicit and implicit feedback. The users will
+be allowed to explicitly specify the papers of interest. In addition,
+user activities (e.g., viewing abstracts or full-texts) will be analyzed
+in order to enhance users’ proles. Most of the current research
+paper recommendation and information retrieval systems use the
+classical bag-of-words methods, which don’t consider the context
+of the words and the semantic similarity between the articles. This
+study will use Recurrent Neural Networks (RNNs) to discover continuous and latent semantic features of the papers, in order to
+improve the recommendation quality. The proposed approach utilizes PubMed so far, since it is frequently used by physicians and
+scientists, but it can easily incorporate other datasets in the future."
+5,"We address the problem of hate speech detection in online
+user comments. Hate speech, defined as an busive speech
+targeting specific group characteristics, such as ethnicity, religion, or gender"", is an important problem plaguing websites
+that allow users to leave feedback, having a negative impact
+on their online business and overall user experience. We propose to learn distributed low-dimensional representations of
+comments using recently proposed neural language models,
+that can then be fed as inputs to a classification algorithm.
+Our approach addresses issues of high-dimensionality and
+sparsity that impact the current state-of-the-art, resulting
+in highly efficient and effective hate speech detectors"
+6,"A key challenge for automatic hate-speech detection on social media is the separation of hate speech from other instances of offensive language. Lexical detection methods tend
+to have low precision because they classify all messages containing particular terms as hate speech and previous work using supervised learning has failed to distinguish between the
+two categories. We used a crowd-sourced hate speech lexicon
+to collect tweets containing hate speech keywords. We use
+crowd-sourcing to label a sample of these tweets into three
+categories: those containing hate speech, only offensive language, and those with neither. We train a multi-class classifier to distinguish between these different categories. Close
+analysis of the predictions and the errors shows when we can
+reliably separate hate speech from other offensive language
+and when this differentiation is more difficult. We find that
+racist and homophobic tweets are more likely to be classified
+as hate speech but that sexist tweets are generally classified
+as offensive. Tweets without explicit hate keywords are also
+more difficult to classify"
+7,"This paper describes a system to extract aspect categories for the task of aspect based sentiment
+analysis. This system can extract both implicit and explicit aspects. We propose a one-vs-rest
+Support Vector Machine (SVM) classifier preceded by a state of the art preprocessing pipeline.
+We present the use of mean embeddings as a feature along with two other new features to
+significantly improve the accuracy of the SVM classifier. This solution is extensible to
+customer reviews in different domains. "
+8,"The prediction of drought is of major importance
+in climate-related studies, hydrologic engineering, wildlife or
+agricultural studies. This study explores the ability of two
+machine learning methods to predict 1, 3, 6 and 12 months
+standardized precipitation and evapotranspiration index (SPEI)
+for the Wilsons Promontory station in Eastern Australia. The two
+methods are multiple linear regression (MLR) and artificial
+neural networks (ANN). The data-driven models were based on
+combinations of the input variables: mean precipitations, mean,
+maximum and minimum temperatures and evapotranspiration,
+for data between 1915 and 2012. Two performance metrics were
+used to compare the performance of the optimum MLR and ANN
+models: the coefficient of determination (R2) and the root mean
+square error (RMSE). It was found that ANN provided greater
+accuracy than MLR in forecasting the 1, 3, 6 and 12 months
+SPEI."
+9,"Deep Neural Networks (DNNs) are powerful models that have achieved excellent performance on difficult learning tasks. Although DNNs work well whenever
+large labeled training sets are available, they cannot be used to map sequences to
+sequences. In this paper, we present a general end-to-end approach to sequence
+learning that makes minimal assumptions on the sequence structure. Our method
+uses a multilayered Long Short-Term Memory (LSTM) to map the input sequence
+to a vector of a fixed dimensionality, and then another deep LSTM to decode the
+target sequence from the vector. Our main result is that on an English to French
+translation task from the WMT-14 dataset, the translations produced by the LSTM
+achieve a BLEU score of 34.8 on the entire test set, where the LSTM’s BLEU
+score was penalized on out-of-vocabulary words. Additionally, the LSTM did not
+have difficulty on long sentences. For comparison, a phrase-based SMT system
+achieves a BLEU score of 33.3 on the same dataset. When we used the LSTM
+to rerank the 1000 hypotheses produced by the aforementioned SMT system, its
+BLEU score increases to 36.5, which is close to the previous state of the art. The
+LSTM also learned sensible phrase and sentence representations that are sensitive
+to word order and are relatively invariant to the active and the passive voice. Finally, we found that reversing the order of the words in all source sentences (but
+not target sentences) improved the LSTM’s performance markedly, because doing
+so introduced many short term dependencies between the source and the target
+sentence which made the optimization problem easier."
+10,"In this work, we address the human parsing task with a
+novel Contextualized Convolutional Neural Network (CoCNN) architecture, which well integrates the cross-layer
+context, global image-level context, within-super-pixel context and cross-super-pixel neighborhood context into a unified network. Given an input human image, Co-CNN produces the pixel-wise categorization in an end-to-end way.
+First, the cross-layer context is captured by our basic localto-global-to-local structure, which hierarchically combines
+the global semantic information and the local fine details
+across different convolutional layers. Second, the global
+image-level label prediction is used as an auxiliary objective in the intermediate layer of the Co-CNN, and its outputs are further used for guiding the feature learning in subsequent convolutional layers to leverage the global imagelevel context. Finally, to further utilize the local super-pixel
+contexts, the within-super-pixel smoothing and cross-superpixel neighbourhood voting are formulated as natural subcomponents of the Co-CNN to achieve the local label consistency in both training and testing process. Comprehensive evaluations on two public datasets well demonstrate the
+significant superiority of our Co-CNN over other state-ofthe-arts for human parsing. In particular, the F-1 score on
+the large dataset [15] reaches 76.95% by Co-CNN, significantly higher than 62.81% and 64.38% by the state-of-theart algorithms, M-CNN [21] and ATR [15], respectively"

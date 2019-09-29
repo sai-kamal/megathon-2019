@@ -1,0 +1,612 @@
+Deep learning is a powerful framework, and has been
+successful in image classification [2], object detection [3],
+pose estimation [4], and other areas. There is great interest
+in applying deep learning to robotic applications, especially
+reinforcement learning problems, i.e. learning behaviors with
+partially or totally unknown dynamics. There are some
+attempts [5], [6], but this is still an open problem.
+We explore learning dynamics with neural networks, and
+applying differential dynamic programming (DDP) to plan
+behaviors. Recently we considered temporally decomposed
+dynamics of a complicated task like pouring [7], modeled
+them with locally weighted regression (LWR), and applied
+DDP [1]. This method was verified in simulation experiments
+of pouring, where the robot controlled a complicated flow to
+achieve pouring. The contribution of [1] was showing that
+learning decomposed dynamics and applying stochastic DDP
+is a promising solution to reinforcement learning problems,
+even in domains with complicated dynamics. By introducing deep neural networks into this framework, we expect:
+(A) better modeling accuracy, and (B) automatic feature
+selection.
+In order to make use of neural networks with stochastic
+DDP, we need extensions for: (1) modeling prediction error
+1A. Yamaguchi and C. G. Atkeson are with The Robotics Institute,
+Carnegie Mellon University, 5000 Forbes Avenue, Pittsburgh PA 15213,
+United States info@akihikoy.net
+and output noise, (2) computing an output probability distribution for a given input distribution, and (3) computing
+gradients of output expectation with respect to an input.
+Since neural networks have nonlinear activation functions,
+these extensions were not easy. In this paper we provide an
+analytic solution for these extensions using some assumptions for simplification.
+We verified our method in simulation experiments of
+pouring similar to those in [1]. Our stochastic DDP with
+extended neural networks outperformed the LWR version.
+When training with many samples, there was a small amount
+of spilled materials in the LWR version. This was reduced
+with the neural networks version. In addition, we used
+redundant and/or non-informative state representations to
+investigate the feature extraction ability of (deep) neural
+networks. Although the state dimensionality changed from
+16 to 47, the learning performance was preserved. We
+also conducted preliminary robot experiments using a PR2.
+Although the number of the experiments is not sufficient,
+we obtained encouraging results. From the simulator results,
+we think that learning dynamics with deep neural networks
+and planning with stochastic DDP is a promising solution to
+reinforcement learning problems. Furthermore, the extended
+neural network is a general-purpose function approximator
+and could be applied to learning various models used in
+robotics such as dynamics and kinematics.
+Related Work
+There are two main approaches for reinforcement learning (RL) problems: a model-free approach and a modelbased approach. In recent robotics research, the model-free
+approach seems to be more successful, for example in a
+ball-in-cup task [8], flipping a pancake [9], and a crawling
+motion [10]. A disadvantage of model-free methods is the
+poor generalization ability compared to that of model-based
+methods. Several attempts have been made to overcome this
+issue [11], [12].
+In a model-based method, dynamics of the system are
+learned, and then planning, such as differential dynamic programming (DDP) [13], is used. Although there are successful
+examples, such as [14], [15], this approach seems not popular
+in RL for robotics, since (1) we need to gather many samples
+to construct dynamics models, and (2) we need to solve two
+problems, model learning and planning.
+However we think that the model-based approach has
+a large potential since learning dynamics would be more
+robust than model-free RL because it is supervised learning,
+and recently many good optimal control methods to solve
+Fig. 1. Neural network architecture used in this paper. It has two networks
+with the same input vector. The top part estimates an output vector, and the
+bottom part models prediction error and output noise. Both use ReLU as
+activation functions.
+dynamic programming have been proposed (e.g. [16], [17]).
+Recently Pan and Theodorou proposed a method: learning
+dynamics models with a Gaussian process and applying
+stochastic DDP [18]. We explore neural networks to model
+complicated dynamics.
+There are several examples of reinforcement learning
+methods using neural networks, such as neural fitted Q iteration [19], and deep Q-learning [5]. These methods use a value
+function based approach to RL with neural networks. Deep
+Q-learning [5] makes use of the ability of deep networks,
+namely, automatically learning features from images, but
+would not be appropriate to learn behaviors with continuous
+control signals. This method is using a discrete set of actions
+like conventional RL methods [20]. Another approach is [12],
+[6] where a trajectory optimization method was combined
+with a local linear model learned from samples, and trained
+neural network polices to increase generalization.
+Another example of using neural networks in robot control
+is [21] where a forward kinematics model between pneumatic
+actuator displacements and feature point positions on an
+android robot face was learned with neural networks, and
+its inverse problem was solved with an optimizer. Although
+the input and output dimensions were large (11 and 54
+respectively), their method achieved an accurate inverse
+kinematics controller of the android face.
+In Section II we propose extensions of neural networks.
+In Section III we describe our stochastic DDP. Section IV
+describes the simulation, Section V describes the robot experiments, and Section VI concludes the paper.
+II. NEURAL NETWORKS FOR REGRESSION WITH
+PROBABILITY DISTRIBUTIONS
+We explore extensions of neural networks for: (1) modeling prediction error and output noise, (2) computing an
+output probability distribution for a given input distribution,
+and (3) computing gradients of output expectation with respect to an input. Typical approaches for (2) are: (A) solving
+analytically, (B) approximating the neural networks with
+a local linear or quadratic model, and (C) computing numerically with random sampling. (A) is not easy since
+neural networks include nonlinear activation functions, (B)
+becomes inaccurate especially when learning a model with
+discrete changes such as a step function, and (C) has a large
+computation cost. We consider some assumptions to simplify
+(A).
+A. Definitions and Assumptions
+We consider a neural network with rectified linear units
+(ReLU; frelu(x) = max(0; x) for x 2 R) as activation
+functions. Based on our preliminary experiments with neural
+networks for regression problems, using ReLU as an activation function was the most stable and obtained the best
+results. Fig. 1 shows the neural network architecture used in
+this paper. For an input vector x, the neural network models
+an output vector y with y = F(x), defined as:
+h1 = f relu(W1x + b1); (1)
+h2 = f relu(W2h1 + b2); (2)
+: : :
+hn = f relu(Wnhn−1 + bn); (3)
+y = Wn+1hn + bn+1; (4)
+where hi is a vector of hidden units at the i-th layer, Wi
+and bi are parameters of a linear model, and f relu is an
+element-wise ReLU function.
+Even when an input x is deterministic, the output y
+might have error due to: (A) prediction error, i.e. the error
+between F(x) and the true function, caused by an insufficient
+number of training samples, insufficient training iterations,
+or insufficient modeling ability (e.g. small number of hidden
+units), and (B) noise added to the output. We do not
+distinguish (A) and (B). Instead, we consider additive noise
+y = F(x) + ξ(x) where ξ(x) is a zero-mean normal
+distribution N(0; Q(x)). Note that since the prediction error
+changes with x and the output noise might change with x, Q
+is a function of x. In order to model Q(x), we use another
+neural network ∆y = ∆F(x) whose architecture is similar
+to F(x), and approximate Q(x) = diag(∆F(x))2 where
+diag is a diagonal function1. ∆y is an element-wise absolute
+error between the training data y and the prediction F(x).
+When x is a normal distribution N(µ; Σ), our purpose
+is to approximate E[y] and cov[y]. The difficulty is the
+use of the nonlinear ReLU operators f relu(p). We use the
+approximation that when p is a normal distribution, f relu(p)
+is also a normal distribution. We also assume that this
+computation is done in an element-wise manner, that is, we
+ignore non-diagonal elements of cov[p] and cov[f relu(p)].
+Although the covariance Q(x) depends on x, we consider
+its MAP estimate: Q(µ).
+B. Expectation
+Let us consider y = F(x) + ξ(x) where ξ(x) ∼
+N(0; Q(x)). For x ∼ N(µ; Σ),
+E[y] = E[F(x) + ξ(x)] = E[F(x)]; (5)
+cov[y] = cov[F(x) + ξ(x)] = cov[F(x)] + cov[ξ(x)]
+= cov[F(x)] + Q(µ): (6)
+1We use diag for two meanings: exploiting diagonal elements as a vector
+from a matrix, and converting a vector to a diagonal matrix.
+Since Q(µ) = diag(∆F(µ))2, the difficulty is computing
+E[F(x)] and cov[F(x)]. We solve these step by step.
+The expectation and covariance of a linear function for an
+input p ∼ N(µp; Σp) are:
+E[Wp + b] = Wµp + b; (7)
+cov[Wp + b] = WΣpW⊤: (8)
+The expectation and covariance of the ReLU function for
+an input p ∼ N(µp; Σp) where Σp is a diagonal matrix are:
+E[f relu(p)] = Erelu(µp; Σp); (9)
+cov[f relu(p)] = Vrelu(µp; Σp); (10)
+where Erelu is an element-wise expectation of ReLU, and
+Vrelu is a diagonal matrix of corresponding variances. For
+µp = [µp1; µp2; : : :]⊤ and Σp = diag[σp 21; σp 22; : : :], each
+element of Erelu(µp; Σp) and Vrelu(µp; Σp) is given by:
+E[frelu(pi)] = ∫−1 1 max(0; pi)G(pi; µpi; σpi 2 )dpi
+=
+σpi
+p2π X + µ2 pi (1 + E); (11)
+var[frelu(pi)]
+= ∫−1 1 (max(0; pi) − E[frelu(pi)])2G(pi; µpi; σpi 2 )dpi
+=
+1 4
+µ
+2
+pi(1 − E2) + σpi 2
+2
+(1 + E − X2
+π
+) − σpip µpi 2π XE ; (12)
+where G is a Gaussian function, X = exp(− 2 µ σ 2 pi 2
+pi
+), E =
+erf( pµ 2pi σpi), and erf is an error function. Derivations are
+described in the appendix.
+The expectation and covariance of each layer’s output for
+an input p ∼ N(µp; Σp) are:
+E[f relu(Wp + b)] = Erelu(Wµp + b; diag(WΣpW⊤)); (13)
+cov[f relu(Wp + b)] = Vrelu(Wµp + b; diag(WΣpW⊤)):
+(14)
+Thus the probability distribution of each hidden layer
+hi ∼ N(µi; Σi) is given by: µi = Erelu(Wiµi−1 +
+bi;diag(WiΣi−1W⊤ i )), and Σi = Vrelu(Wiµi−1 +
+bi;diag(WiΣi−1W⊤ i )), where µ0 = µ and Σ0 = Σ (mean
+and covariance of input x). We compute from i = 1 to n, and
+obtain hn ∼ N(µn; Σn). Since the final activation function
+is linear F(hn) = Wn+1hn + bn+1, we use Eq. (7), (8).
+Finally assigning them into Eq. (5), (6), we obtain
+E[y] = Wn+1µn + bn+1; (15)
+cov[y] = Wn+1ΣnW⊤ n+1 + Q(µ): (16)
+C. Gradient
+The gradient of element-wise ReLU f relu(p) is given by:
+@f relu(p)
+@p = diag(f step(p)); (17)
+where f step is an element-wise step function (1 if p is
+positive, and 0 otherwise). Thus the gradient @ @y x for a
+deterministic x is obtained by:
+@y
+@x =
+@h1
+@x
+@h2
+@h1 · · ·
+@hn
+@hn−1
+@y
+@hn ; (18)
+where @hi
+@hi−1 = W⊤ i diag(f step(Wihi−1+bi)), h0 = x, and
+@y
+@hn = W⊤ n+1.
+For x ∼ N(µ; Σ), we use @@ E[ µ y] as a gradient for the
+distribution of x. This gradient takes a similar form as above.
+For N(µp; Σp) (Σp is a diagonal matrix), the gradient of
+Erelu(µp; Σp) w.r.t. µp is given by:
+@Erelu(µp; Σp)
+@µp = diag(~ f step(µp;diag(Σp))); (19)
+where ~ f step is an element-wise function similar to f step. For
+µp = [µp1; µp2; : : :]⊤ and Σp = diag[σp 21; σp 22; : : :], each
+element of ~ f step is given by:
+f~ step(µpi; σpi) = 1
+2
+(1 + E); (20)
+where E = erf( pµ 2pi σpi). Thus the gradient of E[y] w.r.t. µ is
+given by:
+@E[y]
+@µ
+=
+@µ1
+@µ
+@µ2
+@µ1
+· · ·
+@µn
+@µn−1
+@E[y]
+@µn ; (21)
+@µi
+@µi−1
+= W⊤
+i diag(~ f step(Wiµi−1 + bi; diag(WiΣi−1W⊤ i )));
+(22)
+where µ0 = µ, Σ0 = Σ, and @ @E[ µy n] = W⊤ n+1.
+D. Loss Function for the Error Model
+The neural networks F(x) and ∆F(x) are trained with
+a data set fx; yg. F(x) learns to predict from x to y, and
+∆F(x) learns to predict from x to ∆y. First we train F(x),
+and generate an error data set f∆yg = ff abs(y − F(x))g
+where f abs is an element-wise absolute value function. f∆yg
+is a set of positive value vectors. We expect ∆F(x) predicts
+the envelope of f∆yg. For this purpose, using a standard
+mean squared error is not adequate since the obtained curve
+will be around the middle of the data. Thus we use a different
+loss function to train ∆F(x), given by:
+L = 1
+ND
+N∑ n
+=1
+D∑ d
+=1
+(max(0;∆ynd − ∆Fd(xn))2
++ β min(0;∆ynd − ∆Fd(xn))2); (23)
+where N is the number of training samples, and D is
+the number of output dimensions. The positive error and
+the negative error are summed with a different weight β,
+0 < β < 1. A typical value of β is 0:1. With this loss
+function, the obtained curve shifts to a positive envelope.
+E. Example
+Fig. 2 shows the ReLU function, Erelu(x;1) and
+Erelu(x;1) ± √Vrelu(x;1), and the numerically computed
+expectation of ReLU with the variance 1.
+Fig. 3 shows an example of learning a step function with
+neural networks. We used two hidden layers; each hidden
+Fig. 2. Expectation of ReLU.
+Fig. 3. Learning a step function.
+layer has 200 units. We used dropout [22] for each output
+of the hidden layers during training where the dropout probability is 0:01. The dropout probability for regression works
+better if it is smaller. In classification, typically 0.5 is used,
+but such a large value is problematic in regression. Srivastava
+et al. [22] analyzed the dropout in linear regression: “dropout
+with linear regression is equivalent, in expectation, to ridge
+regression”. Thus we chose 0:01. For training, we used
+100 samples with adding a uniform random noise between
+[−0:1; 0:1]. In Fig. 3, we are comparing the original step
+function, samples for training, the neural network predictions
+for N (x; 0) (there is variance of y because of the prediction
+error model), and the predictions for N (x; 0:52). The gradients of each prediction are also plotted.
+Fig. 4 shows an example of learning a linear function
+y = 0:5x with neural networks. In this example, we used
+output noise changing with x: a uniform random noise
+between [−1; 1] for jxj < 2, and a uniform random noise
+between [−0:25; 0:25] for other x. We used two hidden
+layers; each hidden layer has 200 units. We used the dropout
+with probability 0:01 for training. The above graph of Fig. 4
+shows F (x) (x is a deterministic variable), and the graph
+below shows ∆F (x).
+III. STOCHASTIC DIFFERENTIAL DYNAMIC
+PROGRAMMING
+We use the same differential dynamic programming (DDP)
+that we used in [1]. This DDP is stochastic; that is, we
+consider probability distributions of states and expectations
+of rewards. This design of evaluation functions is similar to
+Fig. 4. Learning y = 0:5x with output noise depending on x.
+Fig. 5. Temporal decomposition considered in this paper. The dotted box
+denotes the whole process.
+recent DDP methods (e.g. [18]). On the other hand, we use a
+simple gradient descent method to optimize actions2, while
+traditional DDP [13] and recent methods (e.g. [16], [17],
+[18]) use a second-order algorithm like Newton’s method. In
+terms of convergence speed, our DDP is inferior to secondorder DDP algorithms. The quality of the solution would
+be the same as far as we use the same evaluation function.
+Our algorithm is easier to implement. Since we use learned
+dynamics models, there should be more local optima than
+when using analytically simplified models. In order to avoid
+poor local maxima, our DDP uses a multiple criteria gradient
+descent method3.
+We consider a system with N decomposed processes
+illustrated in Fig. 5. The input of the n-th process is a state
+xn and an action an, and its output is the next state xn+1.
+Note that some actions may be omitted. A reward is given
+to the outcome state. Let Fn denote the process model:
+xn+1 = Fn(xn; an), and Rn denote the reward model:
+rn = Rn(xn). Typically the most important reward is the
+final reward RN (xN ) and Rn(xn) = 0 for n < N, but we
+consider a general form Rn(xn) so that we can give rewards
+(or penalties) for intermediate states. We assume that every
+state is observable.
+Each dynamics model Fn is learned from samples with the
+neural networks mentioned in this paper where the prediction
+2It works with any gradient descent methods.
+3More specifically, in our DDP, we maintain “reference states” which are
+optimized by ignoring dynamics constraints. These reference states are used
+to create reference value functions. In our multiple criteria gradient descent
+method, we switch the evaluation functions in these value functions and the
+original one. Additionally, we also use multiple gradients computed from
+these value functions and the original evaluation function, which are useful
+to avoid local optima. See [1] for more details.
+Fig. 6. Simulation environment. Right figure is after pouring material.
+error is also modeled. At each step n, a state xn is observed,
+and then an action an is planned with DDP so that an
+evaluation function Jn(xn; fan; : : : ; aN−1g) is maximized.
+Jn
+is an expected sum of future rewards, defined as follows:
+Jn
+(xn; fan; : : : ; aN−1g) = E[∑N n′=n+1 Rn′(xn′)]
+= ∑N n′=n+1 E[Rn′(xn′)]: (24)
+In the DDP algorithm, first we generate an initial set of actions. Using this initial guess, we can predict the probability
+distributions of future states with the neural networks. The
+expected rewards are computed accordingly. Then we update
+the set of actions iteratively with a gradient descent method.
+In these calculations, we use the extensions of the neural
+networks described in this paper to compute the expectations,
+covariances, and the gradients. Thus we can replace LWR in
+[1] by the neural networks, and apply our DDP.
+IV. SIMULATION EXPERIMENTS
+We verify our method in simulated experiments. The
+problem setup is the same as in [1]. In Open Dynamics
+Engine [23], we simulate source and receiving containers,
+poured material, and a robot gripper grasping the source
+container (Fig. 6).
+The materials are modeled with many spheres, simulating the complicated behavior of material such as tomato
+sauce during shaking. There are three typical failure cases:
+(1) pushed the receiving container, (2) materials bounced
+out, and (3) poured at wrong place. Note that even if we
+use the same parameters in the same initial condition, the
+result varies (we are not adding random noise); e.g. in a
+case where the materials spill out of the receiving container,
+but in another case there are no spilled materials. Thus
+the dynamics is complicated as in real pouring, and the
+simulation itself is a probabilistic process probably due
+to contact simulation effects and/or process communication
+delay (the simulator and the DDP program are connected
+over ROS).
+We use the same state machines for pouring as those
+in [1], which are a simplified version of [7]. Those state
+machines have some parameters: a grasping height and
+pouring position. Those parameters are planned with DDP.
+There are five separate processes. The initial or 0th state:
+before grasping. x0: x and y positions of the receiving
+container, a0: the grasping position. The 1st state: after
+grasping. x1: x and y position of the receiving container, and
+actual grasped position, a1: x and y position of the pouring
+(a) Sum of rewards per episode.
+(b) Penalty of spill per episode (y-axis is reversed).
+Fig. 7. Learning curves of on-line learning. Moving average filter with 15
+episode window is applied.
+location. The 2nd state: after moving to the pouring location,
+and before the flow control. x2: x and y displacement of the
+receiving container, the speed of the receiving container, and
+the actual pouring location relative to the receiving container,
+a2: no action. The 3rd state: after the flow control. x3: the
+average flow center (x and y), the flow variance, and zcoordinate of the pouring location. a3: no action. The 4th
+state: after pouring. x4: the amount of materials poured in
+the receiving container (arcv), and the amount of spilled
+materials (aspill). The reward consists of the amount arcv,
+the spilled penalty −aspill, and the penalty for the movement
+of the receiving container given at x2.
+A. Comparison of Models in On-line Learning
+We compare LWR and neural networks as the models of
+processes. Each LWR uses the same configuration as in [1].
+Each neural network has three hidden layers; each hidden
+layer has 200 units. We use dropout [22] for each output of
+hidden layers during training where the dropout probability
+is 0:01.
+We apply the learning framework of [1] in an on-line
+manner. After each state observation, we train the neural
+networks, and plan actions with the models. In the early stage
+of learning, we gather three samples with random actions,
+and after that we use DDP.
+We compared a method using LWR (LWR-Sum/Grad)
+and one using neural networks (DNN-Sum/Grad). Fig. 7(a)
+shows the average learning curves of 10 trials, and Fig. 7(b)
+shows the penalty of spillage. DNN-Sum/Grad is better than
+LWR-Sum/Grad. The difference in the learning curves is
+Fig. 8. Learning curves of on-line learning. Moving average filter with 15
+episode window is applied.
+mainly due to the penalty of spillage; the amount of spilled
+material is smaller in DNN-Sum/Grad. Since the dynamics
+of flow in our simulation model is very complicated, there
+was a small amount of spilled material even after the
+dynamics model is learned. This spilled amount is reduced
+when using neural networks, which indicates that the neural
+networks has a better ability to learn dynamics than LWR.
+B. Using Redundant States
+In the previous experiments, we used carefully selected
+states. Since we can expect automatic feature extraction with
+(deep) neural networks, we test alternative state vectors that
+have redundant and/or non-informative elements. Specifically, instead of the pose of the receiving container, we use
+four corner points on its mouth (x; y; z respectively). We also
+use the y-coordinate of the pouring position. Since we do not
+use the pose of the receiving container, the relative position
+of the flow center is computed with respect to the center of
+the four corner points. Consequently the dimensions of the
+state vectors x0, . . . , x4 are changed from (2, 3, 5, 4, 2) to
+(12, 13, 16, 4, 2) respectively.
+We used the same configuration as well as structure of
+hidden layers. Fig. 8 shows the average learning curves of
+10 trials where the previous result (DNN-Sum/Grad) is
+plotted together with DNN-Sum/Grad X+ that uses the
+expanded states. The learning curves of the two conditions
+are almost the same. This result indicates that although
+the total dimensionality changed from 16 to 47, the neural
+networks could extract the features as we expected. The
+two learning curves also show that the learning speeds are
+almost the same. The reason would be that the complexities
+of the dynamics are the same although the dimensionalities
+are different.
+V. PRELIMINARY ROBOT EXPERIMENTS
+We apply the method to a pouring task of a PR2 robot.
+Although the current results are preliminary, we think these
+are valuable to mention in this paper.
+This task is a simplified version of [7]. Fig. 9 shows
+the setup. The robot starts pouring from an initial state
+shown in the figure with holding a source container. The
+position of the receiving container changes in each episode;
+a human operator places the container differently before each
+Fig. 9. Setup of the robot experiments.
+pouring episode. The position of the receiving container
+is measured by an external RGB-D sensor. First, the pose
+of the AR-marker is measured. Then the base cylinder of
+the receiving container is searched around the AR-marker
+position. We use a template matching method with rendered
+depth and surface-normal images using a ray-tracing method.
+The robot plans a collision-free trajectory to reach a pouring
+location, and executes flow control. Here we use only a
+shaking skill for flow control (flow control with tipping does
+not work in this case since the material jams inside the
+container). Two RGB cameras are used to measure the flow,
+the movement of the receiving container during the flow
+control, the amount of materials poured into the receiving
+container, and the amount of spilled materials. For the flow,
+we use the Lucas-Kanade method [24] to obtain optical flow.
+Then we compute the current flow amount, the flow center
+position, an average flow position, and the flow variance
+during flow control. The movement of the receiving container
+is measured by detecting colors; for this purpose, the base
+cylinder of the container is colored pink. The amount of
+materials is measured by simple color detection; for this
+purpose we use blue-colored materials. In order to decide
+that the materials are poured into the container or spilled
+out, we refer to the receiving container position measured
+by color detection. The two cameras measure these data
+independently. One is used as the x-axis data, and the other
+is used as the y-axis data. The human operator also modifies
+the camera positions when placing the receiving container to
+adjust visual measurements. After pouring a target amount,
+the robot moves the arm back to the initial pose.
+The whole behavior is modeled with state machines.
+In this scenario, the robot plans a feasible pouring location, feasible trajectories, and shaking parameters (“feasible”
+means collision-free and IK-solvable). Although our final
+goal is solving those plans under a single framework, in this
+experiment we combine a classic method and the method
+proposed in this paper. DDP plans parameters that are hard to
+decide without learning the dynamics. The other parameters
+are planned using a classic method. For the pouring location,
+our DDP plans the z-coordinate and the distance from the
+receiving container’s center. Other parameters (e.g. the orientation of the source container) are decided by an optimization
+with CMA-ES [25]. Here the evaluation function takes a
+better value if the source container is closer to the left
+side of the receiving container, and if the pose is feasible.
+Refer to [7] for the details of this optimization. The feasible
+trajectories are also planned with CMA-ES as mentioned in
+[7]. DDP also plans the amplitude of the shaking motion.
+We use a fixed shaking direction.
+Planning with CMA-ES considers only a partial situation,
+while DDP plans the policy parameters considering the entire
+pouring process. We consider three decomposed processes
+for DDP. The initial or 0th state: at the initial state. x0: the
+position of the receiving container in the robot frame, a0: the
+pouring location parameters. The 1st state: after moving the
+source container to the pouring location and before the flow
+control. x1: the actual position of the pouring location, and
+the position of the receiving container in the robot frame, a1:
+the shaking amplitude. The 2nd state: at the end of the flow
+control. x2: the movement of the receiving container in the
+camera frame, the average flow position in the camera frame
+(relative to the the receiving container position), and the flow
+variance; the data from two cameras is used, a2: no action.
+The 3rd state: at the end of the pouring. x3: the amount of
+materials poured in the receiving container (arcv), and the
+amount of spilled materials (aspill). The reward is mainly
+given to (1−5(0:1−arcv))−100aspill where 0:1 is the target
+amount. We use this small target amount in order to reduce
+the experiment time. A penalty is given to the movement of
+the receiving container at x2.
+We conducted three runs with 38, 39, and 69 episodes
+respectively. For the first two runs we used dry peas colored
+blue, and for the third run we used blue plastic beads.
+Fig. 10(a), 10(b), 10(c) show the learning curves where the
+sum of rewards, the poured amount, and the spilled amount
+are plotted per episode respectively. The sum of rewards is
+improved with episodes. From Fig. 10(b) and 10(c) we can
+see a strategy of the robot. After 10 episodes, the poured
+amount curve is gradually decreasing in average. On the
+other hand, between 0th to 20th episodes, the spilled amounts
+are relatively large compared to the later part. Thus the robot
+first tried actions that produced a large amount, and then
+the robot adjusted the actions so that the spilled amount
+is reduced. This tendency would be changed by modifying
+the weights of poured and spilled amounts in the reward
+function.
+Fig. 11 shows part of the dynamics learned with neural
+networks. The graphs in Fig. 11 show the prediction from
+x2 to the reward for the poured and the spilled amounts.
+Since x2 has eight elements, only two elements are varied,
+and the median values of the samples are used for the other
+elements. From the 3D plot (a), we can see the samples are
+noisy, and there are some outliers. From the top view of the
+same graph (b), we can see a peak is located where the flow-y
+is around zero and the flow-x is around −0:1. Since the flow
+position is a relative value from the receiving container, this
+result is almost correct. On the other hand, the graph (c) is
+different from what we expected. The peak should be located
+where the flow-y is zero and the flow variance is also close
+to zero, but actually the peak is at a different position. Since
+DDP is used with the dynamics where (b) and (c) (and other
+not plotted elements) are unified, the problem in (c) is not
+a big issue now. However this might be a potential problem
+(a) Sum of rewards per episode.
+(b) Poured amount per episode.
+(c) Spilled amount per episode.
+Fig. 10. Learning curves (mean±1-SD) of the robot experiment. Moving
+average filter with 5 episode window is used.
+Fig. 11. Plot of the part of dynamics models. The predictions from x2
+to the reward for the poured and the spilled amounts are plotted. (a) and
+(b) are plots over the flow position (x and y). (c) is a plot over the flow
+y-position and the flow y-variance. (b) and (c) also show the contours where
+the reference states used in our DDP are also plotted. (zoom in using your
+PDF viewer)
+in future.
+Conducting better-controlled experiments is planned for
+future work. In the above experiments, the manual placement
+of the RGB cameras might produce noise although the
+stochastic extensions of neural networks could handle them.
+This should be improved. We also consider comparing neural
+networks with LWR and other function approximators in
+robot experiments as well as variations of neural networks
+such as different activation functions.
+VI. CONCLUSION
+As a model-based reinforcement learning method, we explored learning dynamics with neural networks and applying
+differential dynamic programming (DDP) to plan behaviors.
+Based on our recent work [1] where we used locally weighted
+regression to model temporally decomposed dynamics, we
+made use of neural networks with stochastic DDP. For this
+purpose, we extended neural networks with ReLU activation
+functions in terms of probability computations. We verified
+this method in pouring simulation experiments. The learning
+performance with neural networks outperformed that of
+locally weighted regression. The amount of spilled materials
+was reduced. In addition, we used redundant and/or noninformative states to investigate the feature extraction property of (deep) neural networks. Although the state dimensionality changed from 16 to 47, the learning performance did
+not change. The early results of the robot experiments using
+a PR2 were also positive. Therefore we think this framework,
+learning dynamics with deep neural networks and planning
+with stochastic DDP, is a promising solution to reinforcement
+learning problems

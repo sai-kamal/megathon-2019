@@ -1,0 +1,11 @@
+Dynamic programming is a powerful method for solving combinatorial optimization problems. However, it does not always work well, particularly for some NP-hard problems
+having extremely large state spaces. In this paper, we propose an approach to boost the
+capability of dynamic programming with neural networks. First, we replace the conventional tabular method with neural networks of polynomial sizes to approximately represent
+dynamic programming functions. And then we design an iterative algorithm to train the
+neural network with data generated from a solution reconstruction process. Our method
+combines the approximating ability and flexibility of neural networks and the advantage
+of dynamic programming in utilizing intrinsic properties of a problem. This approach can
+significantly reduce the space complexity and it is flexible in balancing space, running time,
+and accuracy. We apply the method to the Travelling Salesman Problem (TSP). The experimental results show that our approach can solve larger problems that are intractable for
+conventional dynamic programming and the performances are near optimal, outperforming
+the well-known approximation algorithms
